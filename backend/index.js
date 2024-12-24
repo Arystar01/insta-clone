@@ -4,6 +4,9 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import userRoutes from './Routes/user_routes.js';
 import connectDB from './utils/db.js';
+import postRoutes from './Routes/post_routes.js';
+import messageRoutes from './Routes/message_routes.js';
+
 
 const app= express();
 //  middlewares
@@ -25,6 +28,8 @@ app.get("/",(req,res)=>{
 });
 
 app.use("/api/users",userRoutes);
+app.use("/api/posts",postRoutes);
+app.use("/api/messages",messageRoutes);
 
 const PORT = process.env.PORT || 5000;
 

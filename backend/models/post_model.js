@@ -1,4 +1,4 @@
-import monoose from "mongoose";
+import mongoose from "mongoose";
 
 const postSchema= new mongoose.Schema({
     caption:{
@@ -25,4 +25,5 @@ const postSchema= new mongoose.Schema({
         }
     ],
 });
-export default Post=mongoose.model("Post",postSchema);
+const Post=mongoose.model("Post",postSchema);
+export default  Post;
