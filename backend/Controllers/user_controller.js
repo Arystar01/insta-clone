@@ -9,25 +9,35 @@ dotenv.config();
 export const register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
+
+    // Check if all fields are provided
     if (!username || !email || !password) {
       return res
         .status(400)
-        .json({ message: "All fields are required", succes: false });
+        .json({ message: "All fields are required", success: false });
     }
+
+    // Check if user already exists
     const userExist = await User.findOne({ email });
-    if (userExists) {
+    if (userExist) {
       return res
         .status(400)
         .json({
-          message: "User already exists, please find new email id ....",
-          succes: false,
+          message: "User already exists, please use a new email address.",
+          success: false,
         });
     }
-    const hashpassworded = await bcrypt.hash(password, 12);
-    await User.create({ username, email, password: hashpassworded });
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Create the user
+    await User.create({ username, email, password: hashedPassword });
+
+    // Respond with success
     res
-      .status(401)
-      .json({ message: "User created successfully", succes: true });
+      .status(201)
+      .json({ message: "User created successfully", success: true });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error in register controller" });
@@ -37,11 +47,16 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Check for missing fields
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "All fields are required", succes: false });
+      return res.status(400).json({
+        message: "All fields are required",
+        success: false,
+      });
     }
+
+    // Check if user exists
     const userExist = await User.findOne({ email });
     if (!userExist) {
       return res.status(400).json({
@@ -49,22 +64,32 @@ export const login = async (req, res) => {
         success: false,
       });
     }
+
+    // Verify password
     const isPasswordMatch = await bcrypt.compare(password, userExist.password);
     if (!isPasswordMatch) {
-      return req.status(400).json({
+      return res.status(400).json({
         message: "Wrong credentials.",
-        succes: false,
+        success: false,
       });
     }
-    const populatedPosts=  await Promise.all(
-      user.posts.map(async (postId) => {
+
+    // Fetch and populate user's posts
+    const populatedPosts = await Promise.all(
+      userExist.post.map(async (postId) => { // Use 'post' here
         const post = await Post.findById(postId);
-        if (post.author.equals(user._id)) {
+        if (post && post.author.equals(userExist._id)) {
           return post;
         }
         return null;
       })
-    )
+    );
+    
+
+    // Filter out null values (in case some posts were not found or did not match the author)
+    const filteredPosts = populatedPosts.filter((post) => post !== null);
+
+    // Create user object to return
     const user = {
       id: userExist._id,
       username: userExist.username,
@@ -74,29 +99,35 @@ export const login = async (req, res) => {
       gender: userExist.gender,
       followers: userExist.followers,
       following: userExist.following,
-      post: populatedPosts,
+      post: filteredPosts, // Correct key name
     };
 
-    // create token
+    // Generate JWT token
     const token = await jwt.sign(
       { id: userExist._id },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
+
+    // Set token in HTTP-only cookie
     return res
       .cookie("token", token, {
         httpOnly: true,
         sameSite: "strict",
-        maxAge: 1000 * 60 * 60 * 24,
+        maxAge: 1000 * 60 * 60 * 24, // 1 day
+        secure: process.env.NODE_ENV === "production", // Secure in production
       })
       .json({
-        message: "Login successfully for ${userExist.username}",
+        message: `Login successfully for ${userExist.username}`, // Fixed string interpolation
         success: true,
         user: user,
       });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Error in login controller" });
+    console.error(error);
+    return res.status(500).json({
+      message: "An unexpected error occurred. Please try again. in login controller",
+      success: false,
+    });
   }
 };
 
