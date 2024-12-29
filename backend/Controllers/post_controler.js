@@ -3,6 +3,8 @@ import sharp from "sharp";
 import cloudinary from "../utils/cloudinary.js";
 import User from "../models/user_models.js";
 import Comment from "../models/comment_model.js";
+
+
 export const addNewPost = async (req, res) => {
     try {
         const { caption } = req.body;
@@ -39,29 +41,32 @@ export const addNewPost = async (req, res) => {
         });
 
         // Find the user and update their 'Post' field directly
-        const user = await User.findById(author);
-        if (!user) {
-            return res.status(400).json({ message: "User not found" });
-        }
+         // Create the new post object
+    const newPost = new Post({
+        caption: caption,
+        image: cloudResponse.secure_url,
+        author: author, 
+        createdAt: new Date(),
+      });
+  
+      // Save the new post to the database
+      const savedPost = await newPost.save(); 
+  
+      // Find and update the user (optional: if you need to store the post ID in the user)
+      const user = await User.findById(author);
+      if (user) {
+        user.post.push(savedPost._id); 
+        await user.save(); 
+      }
+  
+      return res.status(200).json({
+        message: "Post created successfully",
+        success: true,
+        // post: savedPost,
+      });
 
         // Ensure that the user only has one post and replace it with the new one
-        user.Post = {  // Replace the current Post with the new one
-            caption: caption,
-            image: cloudResponse.secure_url, // Use Cloudinary URL for the image
-            createdAt: new Date(), // Add created date if needed
-        };
-
-        // Save the updated user document with the new Post
-        await user.save();
-
-        return res.status(200).json({
-            message: "Post created successfully",
-            success: true,
-            post: {
-                caption: caption,
-                image: cloudResponse.secure_url,
-            },
-        });
+        
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Error in addNewPost controller" });

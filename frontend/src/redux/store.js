@@ -3,7 +3,7 @@ import authSlice from './AuthSlice'; // Make sure the path is correct
 import { persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { combineReducers } from 'redux';
-
+import PostSlice from './PostSlice';
 // Define persist config
 const persistConfig = {
   key: 'root',
@@ -14,6 +14,7 @@ const persistConfig = {
 // Combine your reducers (if you have more than one slice, you can add them here)
 const rootReducer = combineReducers({
   auth: authSlice,
+  post:PostSlice,
 });
 
 // Apply persistence to the root reducer
