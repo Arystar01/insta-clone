@@ -8,6 +8,9 @@ import { useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
+import { useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { setPosts } from '@/redux/PostSlice.js';
 
 const CreatePost = ({ open, setOpen }) => {
   const imageRef = useRef(); // Used for image upload
@@ -15,6 +18,10 @@ const CreatePost = ({ open, setOpen }) => {
   const [caption, setCaption] = useState(''); // Stores caption input
   const [imagePreview, setImagePreview] = useState(""); // Stores image preview URL
   const [loading, setLoading] = useState(false); // Handles loading state
+  const {user}= useSelector(state => state.auth); // Get user data from Redux store
+  const {posts}= useSelector(state => state.post); // Get posts data from Redux store
+  const dispatch = useDispatch();
+
 
   const createPostHandler = async (e) => {
     e.preventDefault();
@@ -33,7 +40,7 @@ const CreatePost = ({ open, setOpen }) => {
 
     try {
       setLoading(true);
-      const res = await axios.post('http://localhost:3000/api/posts/addpost', formData, {
+      const res = await axios.post('http://localhost:8000/api/posts/addpost', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -41,6 +48,7 @@ const CreatePost = ({ open, setOpen }) => {
       });
 
       if (res.data.success) {
+        dispatch(setPosts([res.data.post,...posts])); // Update posts in Redux store
         toast.success(res.data.message);
         setOpen(false); // Close the modal on success
         setFile(null); // Reset file state
@@ -75,8 +83,8 @@ const CreatePost = ({ open, setOpen }) => {
               <AvatarImage src="https://github.com/shadcn.png" alt='img_box' />
             </Avatar>
             <div>
-              <h1 className='font-semibold text-xs'>Username</h1>
-              <span className='text-gray-600 text-xs'>Bio here...</span>
+              <h1 className='font-semibold text-xs'>{user.username}</h1>
+              <span className='text-gray-600 text-xs'>{user.bio}</span>
             </div>
             <div>
               {/* Textarea for Caption */}
@@ -104,7 +112,7 @@ const CreatePost = ({ open, setOpen }) => {
               Please wait
             </Button>
           ) : (
-            <Button onClick={createPostHandler} type='submit' className='w-full bg-[#0095f6] hover:bg-[#258bcf] flex mt-2'>
+            <Button onClick={createPostHandler} type='submit' className='w-full bg-[#0095f6] hover:bg-[#258bcf] flex mt-2 '>
               <span className='text-white'>Post</span>
             </Button>
           )}

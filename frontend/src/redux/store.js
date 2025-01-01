@@ -1,26 +1,22 @@
-import { configureStore } from '@reduxjs/toolkit';
-import authSlice from './AuthSlice'; // Make sure the path is correct
-import { persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
-import { combineReducers } from 'redux';
-import PostSlice from './PostSlice';
-// Define persist config
+import { configureStore } from "@reduxjs/toolkit";
+import postSlice from "./PostSlice.js";
+import authSlice from "./AuthSlice.js"; // Replace with your actual auth slice
+import { persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from "redux-persist";
+import storage from "redux-persist/lib/storage";
+import { combineReducers } from "redux";
+
 const persistConfig = {
-  key: 'root',
+  key: "root",
   version: 1,
   storage,
 };
 
-// Combine your reducers (if you have more than one slice, you can add them here)
 const rootReducer = combineReducers({
   auth: authSlice,
-  post:PostSlice,
+  post: postSlice,
 });
 
-// Apply persistence to the root reducer
 const persistedReducer = persistReducer(persistConfig, rootReducer);
-
-// Create the store with persistence
 const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
@@ -28,7 +24,11 @@ const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
+    }).concat((store) => (next) => (action) => {
+      console.log("Dispatching action:", action);
+      return next(action);
     }),
 });
+
 
 export default store;

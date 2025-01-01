@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
+import Post from "../models/post_model.js";
 dotenv.config();
 
 export const register = async (req, res) => {
@@ -103,7 +104,7 @@ export const login = async (req, res) => {
     };
 
     // Generate JWT token
-    const token = await jwt.sign(
+    const token = jwt.sign(
       { id: userExist._id },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }

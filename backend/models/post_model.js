@@ -1,29 +1,33 @@
 import mongoose from "mongoose";
 
-const postSchema= new mongoose.Schema({
-    caption:{
-        type:String,default:""
+const postSchema = new mongoose.Schema({
+    caption: {
+        type: String,
+        default: ""
     },
-    image:{
-        type:String,
-        required:true
+    image: {
+        type: String,
+        required: true
     },
-    author:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"User", required:true
-    }, 
-    likedBy:[
+    author: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User", 
+        required: true
+    },
+    likedBy: [
         {
-            type:mongoose.Schema.Types.ObjectId,
-            ref:"User"
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
         }
     ],
-    comments:[
+    comments: [
         {
-            type:mongoose.Schema.Types.ObjectId,
-            ref:"Comment"
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Comment"
         }
-    ],
-});
-const Post=mongoose.model("Post",postSchema);
-export default  Post;
+    ]
+}, { timestamps: true }); // This adds the createdAt and updatedAt fields automatically
+
+const Post = mongoose.model("Post", postSchema);
+
+export default Post;
